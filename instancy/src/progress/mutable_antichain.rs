@@ -249,6 +249,28 @@ mod tests {
     use super::*;
     use crate::order::Product;
 
+    // timely-dataflow 492787b, progress/frontier.rs::mutable_compaction.
+    // Upstream license: instancy/examples/timely/LICENSE.
+    #[test]
+    fn timely_mutable_compaction() {
+        let mut mutable = MutableAntichain::new();
+        for _ in 0..6 {
+            mutable.update_iter([(7u64, 1)]);
+        }
+        for _ in 0..5 {
+            mutable.update_iter([(8, 1)]);
+        }
+        for _ in 0..1_000 {
+            mutable.update_iter([(9, 1)]);
+            mutable.update_iter([(9, -1)]);
+        }
+        assert!(mutable.updates.unstable_internal_updates().len() <= 32);
+        assert_eq!(mutable.frontier(), &[7]);
+        assert_eq!(mutable.count_for(&7), 6);
+        assert_eq!(mutable.count_for(&8), 5);
+        assert_eq!(mutable.count_for(&9), 0);
+    }
+
     // --- Basic operations ---
 
     #[test]

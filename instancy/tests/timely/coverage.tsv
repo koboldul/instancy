@@ -1,0 +1,74 @@
+# Source: timely-dataflow commit 492787b (0.31.0).
+# Scope: existing Instancy APIs, as explicitly selected by the user.
+# adapted = preserved behavior on Instancy; partial = only the stated behavior;
+# unsupported = required public capability absent; out-of-scope = workspace internals/platform.
+# Doctests are not imported: they primarily document Timely-specific APIs.
+kind	source	case	status	destination	coverage_or_missing_capability
+example	timely/examples/simple.rs	simple	adapted	instancy/examples/timely/basics.rs::simple	Original 0..10 single-worker stream at time 0; exact timestamped records.
+example	timely/examples/hello.rs	hello	adapted	instancy/examples/timely/basics.rs::hello	Ten rounds; only worker 0 injects input; value-based exchange and exact time/worker assertions.
+example	timely/examples/exchange.rs	exchange	adapted	instancy/examples/timely/basics.rs::exchange	Bounded batch=8 rounds=4 workers=2; preserve advance-after-send timing including first two batches at time 0.
+example	timely/examples/distinct.rs	distinct	adapted	instancy/examples/timely/basics.rs::distinct	Original literal input partitions and value-modulo-two exchange; persistent per-time deduplication and exact placement.
+example	timely/examples/hashjoin.rs	hashjoin	adapted	instancy/examples/timely/hashjoin.rs	Bounded keys=4 vals=16 batch=2; original deterministic hash generators and duplicate-preserving symmetric join; all-pairs timestamped reference.
+example	timely/examples/wordcount.rs	wordcount	adapted	instancy/examples/timely/wordcount.rs	Ten original round increments per worker; word-length exchange; frontier-delayed signed running counts 1..20, not final-count-only aggregation.
+example	timely/examples/unionfind.rs	unionfind	adapted	instancy/examples/timely/unionfind.rs	Bounded nodes=8 edges=16 batch=2; original deterministic generator; local then global union-by-rank; acyclic forest/connectivity checked per timestamp.
+example	timely/examples/pingpong.rs	pingpong	adapted	instancy/examples/timely/pingpong.rs	Bounded iterations=4 elements=6; scalar t represented bijectively as Product(0,t); check every exchange-before-increment step, worker and timestamp.
+example	timely/examples/bfs.rs	bfs	adapted	instancy/examples/timely/bfs.rs	Bounded nodes=8 edges=32; original deterministic CSR graph and source routing; scalar t represented by Product(0,t); assert all reachable nodes, shortest levels and valid shortest-path parents.
+example	timely/examples/event_driven.rs	event_driven	partial	instancy/examples/timely/event_driven.rs	Two simultaneous flows, both data and progress-only modes, two workers; finite 12-round run. Identity pipeline preserved but region enter/leave identity and nested progress topology are flattened and NOT covered.
+example	timely/examples/barrier.rs	barrier	unsupported	-	Progress-only initial operator capabilities and executable root-scope feedback unavailable; token iteration changes the benchmark.
+example	timely/examples/capture_recv.rs	capture_recv	unsupported	-	No TCP capture-event reader/replay protocol preserving data and progress events.
+example	timely/examples/capture_send.rs	capture_send	unsupported	-	No capture-event writer/TCP serialization of data and progress events.
+example	timely/examples/columnar.rs	columnar	unsupported	-	No generic borrowed columnar containers, ProcessBinary exchange, or custom container accounting; row wordcount is not equivalent.
+example	timely/examples/logging-recv.rs	logging-recv	unsupported	-	No typed TimelySetup/TimelyEvent capture and replay protocol.
+example	timely/examples/logging-send.rs	logging-send	unsupported	-	No dynamic Timely worker logging registrations, typed progress/reachability streams or logger flush API.
+example	timely/examples/logging_replay.rs	logging_replay	unsupported	-	No EventLink/BatchLogger cross-thread event replay and independent replay progress.
+example	timely/examples/loopdemo.rs	loopdemo	unsupported	-	Overlapping scalar-root-time Collatz feedback with elapsed-nanosecond offered load and frontier latency acknowledgments cannot be preserved by epoch-isolated nested iterate.
+example	timely/examples/openloop.rs	openloop	unsupported	-	No caller-controlled worker stepping/startup barrier and offered-load/frontier/elapsed-time histogram API.
+example	timely/examples/pagerank.rs	pagerank	unsupported	-	Incremental integer rank deltas and edge insert/remove updates overlap scalar root-feedback times; nested iterate would change epoch/frontier interactions.
+example	timely/examples/rc.rs	rc	unsupported	-	Deliberately non-Send Rc payloads are incompatible with Instancy Send record requirement.
+example	timely/examples/sequence.rs	sequence	unsupported	-	No Sequencer total-order synchronization primitive; exchange/gather alone is not equivalent.
+example	timely/examples/spill_compare.rs	spill_compare	unsupported	-	No ProcessBinary/MergeQueue zero-copy hooks, threshold spilling, file-backed fetch or prefetch policy.
+example	timely/examples/threadless.rs	threadless	unsupported	-	No caller-owned naked single-threaded Worker/manual step without runtime threads.
+example	timely/examples/unordered_input.rs	unordered_input	unsupported	-	No external capability-scoped unordered input sessions, activation or delayed input capabilities.
+integration	timely/tests/gh_523.rs	gh_523	adapted	instancy/tests/timely_parity.rs::gh_523_empty_container_before_exchange	Empty then nonempty output sessions followed by exchange; assert exact records/timestamps and completion.
+integration	timely/tests/gh_824.rs	gh_824	adapted	instancy/tests/timely_parity.rs::gh_824_flush_before_frontier_advance	Two local workers; await exchanged output before advancing producer to force the asynchronous equivalent of flush/step.
+integration	timely/tests/barrier.rs	barrier_sync_1w	unsupported	-	Progress-only feedback with initial operator capabilities is not exposed by DataflowBuilder.
+integration	timely/tests/barrier.rs	barrier_sync_2w	unsupported	-	Progress-only feedback with initial operator capabilities is not exposed by DataflowBuilder.
+integration	timely/tests/barrier.rs	barrier_sync_3w	unsupported	-	Progress-only feedback with initial operator capabilities is not exposed by DataflowBuilder.
+integration	timely/tests/current_operator.rs	operator_is_current_while_scheduled	unsupported	-	No public scheduler-local current-operator identity or nested scheduler API.
+integration	timely/tests/shape_scaling.rs	operator_scaling_1	unsupported	-	No generic n-output partition and n-input operator builder; a chain of unary maps is not equivalent topology.
+integration	timely/tests/shape_scaling.rs	operator_scaling_10	unsupported	-	No generic n-output partition and n-input operator builder.
+integration	timely/tests/shape_scaling.rs	operator_scaling_100	unsupported	-	No generic n-output partition and n-input operator builder.
+integration	timely/tests/shape_scaling.rs	operator_scaling_1000	unsupported	-	No generic n-output partition and n-input operator builder.
+integration	timely/tests/shape_scaling.rs	operator_scaling_10000	unsupported	-	No generic n-output partition and n-input operator builder.
+integration	timely/tests/shape_scaling.rs	operator_scaling_100000	unsupported	-	No generic n-output partition and n-input operator builder.
+integration	timely/tests/shape_scaling.rs	subgraph_scaling_1	unsupported	-	No executable timestamp-neutral region/enter/leave API.
+integration	timely/tests/shape_scaling.rs	subgraph_scaling_10	unsupported	-	No executable timestamp-neutral region/enter/leave API.
+integration	timely/tests/shape_scaling.rs	subgraph_scaling_100	unsupported	-	No executable timestamp-neutral region/enter/leave API.
+integration	timely/tests/shape_scaling.rs	subgraph_scaling_1000	unsupported	-	No executable timestamp-neutral region/enter/leave API.
+integration	timely/tests/shape_scaling.rs	subgraph_scaling_10000	unsupported	-	No executable timestamp-neutral region/enter/leave API.
+integration	timely/tests/shape_scaling.rs	subgraph_scaling_100000	unsupported	-	No executable timestamp-neutral region/enter/leave API.
+integration	timely/tests/stamps.rs	multi_capability_stamps	unsupported	-	Records carry one timestamp; no multi-capability message Stamp/retain_stamp.
+integration	timely/tests/stamps.rs	zero_capability_stamps	unsupported	-	No empty-stamped records sent without a timestamp capability.
+integration	timely/tests/stamps.rs	zero_capability_stamps_feedback	unsupported	-	No empty-stamped records or their root-scope feedback semantics.
+integration	timely/tests/stamps.rs	multi_stamps_exchange	unsupported	-	Exchange carries one timestamp per message, not a multi-element Stamp.
+integration	timely/tests/stamps.rs	frame_canonical_form	unsupported	-	No Stamp frame projection/filter/canonical ordering API; ordinary Antichain equality is not equivalent.
+integration	timely/tests/stamps.rs	multi_stamp_leave_collapse	unsupported	-	No multi-capability message stamps or stamp-aware leave projection.
+unit	timely/src/dataflow/operators/core/map.rs	test_builder	partial	instancy/tests/timely_parity.rs::core_map_builder_records	Preserve flat-map/three-map/Some pipeline and exact 4..14 result; generic container builders and capture encoding not covered.
+unit	timely/src/dataflow/operators/core/probe.rs	probe	adapted	instancy/tests/timely_parity.rs::core_probe_frontier_and_close	Preserve ten pre-advance frontier assertions and final completion; wait for background scheduling instead of worker.step.
+unit	timely/src/progress/frontier.rs	mutable_compaction	adapted	instancy/src/progress/mutable_antichain.rs::tests::timely_mutable_compaction	Preserve six counts at 7, five at 8, 1000 transient pairs at 9 and raw-update bound of 32; also assert net counts.
+unit	timely/src/progress/frontier.rs	antichain_hash	unsupported	-	Instancy Antichain has order-independent equality but no Hash implementation.
+unit	timely/src/dataflow/operators/core/enterleave.rs	test_nested	unsupported	-	No executable timestamp-neutral nested regions; nested iterate is a different graph/progress operation.
+unit	timely/src/dataflow/stream.rs	test_non_clone_stream	unsupported	-	DataflowBuilder/Pipe require Clone + Send records.
+unit	timely/src/dataflow/operators/core/capture/event.rs	link::tests::avoid_stack_overflow_in_drop	unsupported	-	No captured-event Rc linked-list API; tests drop a million-event capture chain without stack overflow.
+unit	timely/src/dataflow/operators/core/capture/event.rs	link_sync::tests::avoid_stack_overflow_in_drop	unsupported	-	No captured-event Arc linked-list API; tests drop a million-event capture chain without stack overflow.
+unit	timely/src/dataflow/operators/core/rc.rs	test_shared	unsupported	-	No pointer-preserving SharedStream/container fanout; Pipe cloning clones record batches.
+unit	timely/src/dataflow/operators/generic/builder_rc.rs	incorrect_capabilities	unsupported	-	No public generic multi-output builder with explicit output-specific capabilities.
+unit	timely/src/dataflow/operators/generic/builder_rc.rs	correct_capabilities	unsupported	-	No public generic multi-output builder with explicit output-specific capabilities.
+unit	timely/src/progress/stamp.rs	deserialize_sorts	unsupported	-	No Stamp serde representation or canonical stamp deserialization.
+unit	timely/src/scheduling/current.rs	guards_nest_and_restore	unsupported	-	No public current-operator scheduler guard API.
+workspace-example	communication/examples/comm_hello.rs	comm_hello	out-of-scope	-	Timely communication allocator API, not public dataflow behavior.
+workspace-example	communication/examples/lgalloc.rs	lgalloc	out-of-scope	-	Timely lgalloc allocator internals.
+workspace-example	communication/examples/spill_stress.rs	spill_stress	out-of-scope	-	Timely zero-copy spill allocator and RSS/process diagnostics.
+platform-example	timely/examples/wasm-bindgen/src/lib.rs	wasm-bindgen	out-of-scope	-	Browser/WASM execution was not selected; Instancy uses native Tokio/worker threads.
+workspace-unit	communication/src/allocator/zero_copy/spill.rs	eager_policy_moves_middle_entries	out-of-scope	-	Timely zero-copy spill policy internals, not an Instancy API.
+workspace-unit	communication/src/allocator/zero_copy/spill.rs	merge_queue_spill_roundtrip_mock	out-of-scope	-	Timely zero-copy allocator queue internals, not an Instancy API.
